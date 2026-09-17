@@ -1,6 +1,6 @@
 # Cooler Calls — field-service CRM for Denise's refrigeration business
 
-> **Live demo:** _(deploying — link added below when up)_ · **Demo login:** pick a user, no password.
+> **Live demo:** https://cooler-calls-crm.vercel.app · **Demo login:** pick a user, no password. · **Code:** https://github.com/ayushdueby/GushWork-FDE-assignment
 
 Denise runs a commercial refrigeration repair company: walk-in coolers, freezers and ice machines for restaurants, grocery stores and warehouses. Four techs in the field, her husband on the books part-time, 15–20 new leads a week plus repeat customers. Leads arrive from five scattered places — the office line ringing her cell, a website form that lands in an email inbox, texts from repeat customers and referrals, and a paper notebook.
 
