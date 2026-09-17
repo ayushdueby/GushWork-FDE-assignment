@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { useRef } from "react";
 import { ChevronDown, LogOut, Repeat } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function UserMenu({ name, role }: { name: string; role: string }) {
+  const formRef = useRef<HTMLFormElement>(null);
   return (
     <DropdownMenu>
       <DropdownMenuTrigger className="flex min-h-11 items-center gap-2 rounded-lg px-2 text-sm hover:bg-muted" aria-label="Account menu">
@@ -29,8 +31,8 @@ export function UserMenu({ name, role }: { name: string; role: string }) {
         <DropdownMenuItem render={<Link href="/login?switch=1" />}>
           <Repeat className="size-4" /> Switch user / role
         </DropdownMenuItem>
-        <form action="/api/auth/logout" method="post">
-          <DropdownMenuItem render={<button type="submit" className="w-full" />}>
+        <form action="/api/auth/logout" method="post" ref={formRef}>
+          <DropdownMenuItem onClick={() => formRef.current?.requestSubmit()}>
             <LogOut className="size-4" /> Sign out
           </DropdownMenuItem>
         </form>
