@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowRight, Check, Mail, MessageSquare, Phone, Sparkles } from "lucide-react";
+import { ArrowRight, BellRing, Check, Mail, MessageSquare, Phone, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { advanceStageAction, markContactedAction } from "@/lib/actions/jobs";
+import { sendQuoteReminderAction } from "@/lib/actions/quotes";
 import { Button } from "@/components/ui/button";
 import { STAGE_LABEL, formatPhone, nextStage, type Stage } from "@/lib/domain/types";
 import { daysAgoLabel } from "@/lib/rules/dates";
@@ -92,6 +93,19 @@ export function CallList({ rows, techs, ownerName, canWrite }: { rows: TodayRow[
       const res = await advanceStageAction(fd);
       if (res.ok) {
         toast.success(res.message);
+        router.refresh();
+      } else toast.error(res.error);
+    });
+  }
+
+  function remind(row: TodayRow) {
+    if (!row.quoteId) return;
+    const fd = new FormData();
+    fd.set("quoteId", row.quoteId);
+    start(async () => {
+      const res = await sendQuoteReminderAction(fd);
+      if (res.ok) {
+        toast.success(res.message, res.simulated && res.preview ? { description: res.preview.slice(0, 160) } : undefined);
         router.refresh();
       } else toast.error(res.error);
     });
@@ -185,6 +199,11 @@ export function CallList({ rows, techs, ownerName, canWrite }: { rows: TodayRow[
                     <Button variant="outline" size="sm" onClick={() => setMsg({ channel: "email", to: r.email, jobId: r.jobId, customerId: r.customerId, subject: `${r.equipment} at ${r.business}`, text: textTemplate(r) })} aria-label={`Email ${r.business}`}>
                       <Mail /> Email
                     </Button>
+                    {r.rule === "follow-up-quote" && r.quoteId && (
+                      <Button variant="outline" size="sm" onClick={() => remind(r)} disabled={pending} aria-label={`Send quote reminder to ${r.business}`} data-testid="send-reminder">
+                        <BellRing /> Send reminder
+                      </Button>
+                    )}
                     <Button variant="outline" size="sm" onClick={() => contacted(r)} disabled={pending} aria-label={`Mark ${r.business} contacted`}>
                       <Check /> Contacted
                     </Button>
