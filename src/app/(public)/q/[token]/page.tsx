@@ -43,7 +43,7 @@ export default async function PublicQuotePage({ params, searchParams }: { params
           </label>
           <textarea id="comment" name="comment" maxLength={1000} rows={2} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-base" placeholder="Mornings work best for us." />
           <div className="flex flex-col gap-2 sm:flex-row">
-            <button type="submit" name="decision" value="accept" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-600 px-5 text-base font-semibold text-white hover:bg-emerald-700 focus-visible:ring-3 focus-visible:ring-ring/50" data-testid="accept-quote">
+            <button type="submit" name="decision" value="accept" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-emerald-700 px-5 text-base font-semibold text-white hover:bg-emerald-700 focus-visible:ring-3 focus-visible:ring-ring/50" data-testid="accept-quote">
               <CheckCircle2 className="size-5" /> Accept quote
             </button>
             <button type="submit" name="decision" value="decline" className="inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-lg border border-border bg-background px-5 text-base font-semibold hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50" data-testid="decline-quote">

@@ -18,7 +18,7 @@ export async function AppShell({ user, children }: { user: CurrentUser; children
       <div className="flex min-h-screen flex-col">
         <DemoBanner status={status} />
         <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border bg-card/95 px-4 backdrop-blur">
-          <Link href={user.role === "tech" ? "/tech" : user.role === "bookkeeper" ? "/reports" : "/"} className="flex items-center gap-2 font-semibold tracking-tight">
+          <Link href={user.role === "tech" ? "/tech" : user.role === "bookkeeper" ? "/reports" : "/"} className="flex items-center gap-2 font-semibold tracking-tight" aria-label="Cooler Calls home">
             <span className="grid size-8 place-items-center rounded-lg bg-primary text-primary-foreground">
               <Snowflake className="size-4" />
             </span>
@@ -31,7 +31,7 @@ export async function AppShell({ user, children }: { user: CurrentUser; children
         </header>
         <div className="flex flex-1">
           <SideNav role={user.role as Role} inboxCount={inboxCount} />
-          <main id="main" className="min-w-0 flex-1 px-4 pb-24 pt-5 md:px-8 md:pb-10">
+          <main id="main" className="min-w-0 flex-1 overflow-x-clip px-4 pb-24 pt-5 md:px-8 md:pb-10">
             {children}
           </main>
         </div>

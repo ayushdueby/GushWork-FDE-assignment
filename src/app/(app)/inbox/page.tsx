@@ -34,6 +34,9 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
   if (sp.channel) list = list.filter((t) => t.channel === sp.channel || (sp.channel === "email" && t.channel === "web_form"));
   if (sp.review === "1") list = list.filter((t) => t.needsReview);
 
+  // Desktop shows list + conversation; on a phone the list is the landing view and a
+  // conversation only takes over the screen when one was explicitly opened.
+  const explicit = !!(sp.m || sp.t);
   const selectedKey = sp.m ? (messages.find((x) => x.id === sp.m)?.threadKey ?? null) : sp.t ?? list[0]?.key ?? null;
   const selected = selectedKey ? threads.get(selectedKey) ?? null : null;
   const needsReviewCount = messages.filter((m) => m.direction === "inbound" && m.status === "needs_review").length;
@@ -73,13 +76,13 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
             {label}
           </Link>
         ))}
-        <Link href={filterLink({ review: sp.review === "1" ? undefined : "1", t: undefined })} role="tab" aria-selected={sp.review === "1"} className={cn("rounded-full px-3 py-1.5 font-medium", sp.review === "1" ? "bg-amber-500 text-white" : "bg-amber-50 text-amber-900 hover:bg-amber-100")}>
+        <Link href={filterLink({ review: sp.review === "1" ? undefined : "1", t: undefined })} role="tab" aria-selected={sp.review === "1"} className={cn("rounded-full px-3 py-1.5 font-medium", sp.review === "1" ? "bg-amber-700 text-white" : "bg-amber-50 text-amber-900 hover:bg-amber-100")}>
           Needs review {needsReviewCount > 0 && <span className="ml-1 rounded-full bg-white/70 px-1.5 text-xs text-amber-900">{needsReviewCount}</span>}
         </Link>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[22rem_1fr]">
-        <ul className={cn("max-h-[70vh] divide-y divide-border overflow-auto rounded-2xl border border-border bg-card", selected && "hidden lg:block")} aria-label="Conversations">
+        <ul className={cn("max-h-[70vh] divide-y divide-border overflow-auto rounded-2xl border border-border bg-card", explicit && "hidden lg:block")} aria-label="Conversations">
           {list.length === 0 && <li className="px-4 py-10 text-center text-sm text-muted-foreground">Nothing here. Try “Simulate incoming email”.</li>}
           {list.map((t) => {
             const Icon = CHANNEL_ICON[t.latest.channel as keyof typeof CHANNEL_ICON] ?? Mail;
@@ -90,7 +93,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
                   <div className="flex items-center gap-2">
                     <Icon className="size-4 shrink-0 text-muted-foreground" />
                     <span className="min-w-0 flex-1 truncate font-medium">{who}</span>
-                    {t.needsReview && <span className="rounded-full bg-amber-500 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">Review</span>}
+                    {t.needsReview && <span className="rounded-full bg-amber-700 px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">Review</span>}
                     <span className="text-xs text-muted-foreground">{timeAgo(t.latest.receivedAt)}</span>
                   </div>
                   <p className="mt-0.5 truncate text-sm text-muted-foreground">
@@ -104,7 +107,7 @@ export default async function InboxPage({ searchParams }: { searchParams: Promis
           })}
         </ul>
 
-        <section className="min-w-0 rounded-2xl border border-border bg-card" aria-label="Conversation">
+        <section className={cn("min-w-0 rounded-2xl border border-border bg-card", !explicit && "hidden lg:block")} aria-label="Conversation">
           {!selected ? (
             <div className="px-6 py-16 text-center text-sm text-muted-foreground">Pick a conversation.</div>
           ) : (
@@ -132,13 +135,13 @@ function ThreadView({ msgs, canWrite, backHref }: { msgs: Msg[]; canWrite: boole
           ← All
         </Link>
         <div className="min-w-0 flex-1">
-          <p className="truncate font-semibold">{customer ? <Link href={`/customers/${customer.id}`} className="hover:underline">{customer.businessName}</Link> : latestInbound.channel === "sms" ? formatPhone(to) : to}</p>
+          <p className="truncate font-semibold">{customer ? <Link href={`/customers/${customer.id}`} className="underline decoration-transparent hover:decoration-current">{customer.businessName}</Link> : latestInbound.channel === "sms" ? formatPhone(to) : to}</p>
           <p className="text-xs text-muted-foreground">
             {latestInbound.channel.replace("_", " ")} · {latestInbound.channel === "sms" ? formatPhone(to) : to}
             {job && (
               <>
                 {" · "}
-                <Link href={`/jobs/${job.id}`} className="text-primary hover:underline">
+                <Link href={`/jobs/${job.id}`} className="text-primary underline">
                   open job
                 </Link>
               </>

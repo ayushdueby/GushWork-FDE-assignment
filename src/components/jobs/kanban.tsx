@@ -47,7 +47,7 @@ export function Kanban({ jobs, techs, canWrite, showLost }: { jobs: KanbanJob[];
 
   return (
     <>
-      <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-4 md:mx-0 md:px-0" role="list" aria-label="Jobs by stage">
+      <div className="relative flex max-w-full snap-x gap-3 overflow-x-auto pb-4" role="list" aria-label="Jobs by stage">
         {cols.map((stage) => {
           const items = jobs.filter((j) => j.stage === stage);
           return (
@@ -87,7 +87,7 @@ export function Kanban({ jobs, techs, canWrite, showLost }: { jobs: KanbanJob[];
                         e.dataTransfer.setData("text/plain", j.id);
                       }}
                       onDragEnd={() => setDragging(null)}
-                      className={cn("rounded-xl border bg-card p-3 text-sm shadow-sm", j.urgent ? "border-red-300 urgent-ring" : "border-border", dragging === j.id && "opacity-50")}
+                      className={cn("relative rounded-xl border bg-card p-3 text-sm shadow-sm", j.urgent ? "border-red-300 urgent-ring" : "border-border", dragging === j.id && "opacity-50")}
                       data-testid="kanban-card"
                       data-job-id={j.id}
                     >

@@ -43,7 +43,7 @@ export function ReviewCard({ messageId, status, extraction, job, customer, canWr
         </span>
         <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${urgencyStyle}`}>{ex.urgency}</span>
         <span className="rounded-full bg-white px-2 py-0.5 text-xs font-medium text-violet-900 ring-1 ring-violet-200">{ex.intent.replace(/_/g, " ")}</span>
-        {status === "needs_review" && <span className="rounded-full bg-amber-500 px-2 py-0.5 text-xs font-bold text-white">Needs review</span>}
+        {status === "needs_review" && <span className="rounded-full bg-amber-700 px-2 py-0.5 text-xs font-bold text-white">Needs review</span>}
         {status === "accepted" && <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-900">Reviewed</span>}
         {status === "not_a_lead" && <span className="rounded-full bg-slate-200 px-2 py-0.5 text-xs font-semibold text-slate-700">Not a lead</span>}
       </div>
@@ -116,7 +116,7 @@ export function ReviewCard({ messageId, status, extraction, job, customer, canWr
           </Link>
         )}
         {customer && !job && (
-          <Link href={`/customers/${customer.id}`} className="text-xs text-primary hover:underline">
+          <Link href={`/customers/${customer.id}`} className="text-xs text-primary underline">
             {customer.businessName}
           </Link>
         )}

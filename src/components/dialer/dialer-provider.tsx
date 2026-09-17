@@ -49,7 +49,7 @@ export function DialerProvider({ enabled, children }: { enabled: boolean; childr
           type="button"
           onClick={() => openDialer()}
           aria-label="Open dialer"
-          className="fixed bottom-20 right-4 z-30 grid size-14 place-items-center rounded-full bg-emerald-600 text-white shadow-lg hover:bg-emerald-700 md:bottom-6"
+          className="fixed bottom-20 right-4 z-30 grid size-14 place-items-center rounded-full bg-emerald-700 text-white shadow-lg hover:bg-emerald-800 md:bottom-6"
           data-testid="open-dialer"
         >
           <Phone className="size-6" />

@@ -16,7 +16,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "test:all": "vitest run && playwright test"
+    "test:all": "vitest run && playwright test",
+    "e2e:server": "dotenv -e .env.e2e -- sh -c 'rm -f prisma/e2e.db && node scripts/prisma-provider.mjs && prisma db push --skip-generate && tsx prisma/seed.ts && next build && next start -p 3200'"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.126.0",

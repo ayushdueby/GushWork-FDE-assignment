@@ -18,7 +18,7 @@ function round2(n: number): number {
 
 export function computeTotals(items: LineItemInput[], taxRatePercent: number): Totals {
   const lines = items
-    .filter((it) => it.description.trim() !== "" || it.qty !== 0 || it.unitPrice !== 0)
+    .filter((it) => it.description.trim() !== "")
     .map((it) => {
       const qty = Number.isFinite(it.qty) && it.qty > 0 ? it.qty : 0;
       const unitPrice = Number.isFinite(it.unitPrice) && it.unitPrice >= 0 ? it.unitPrice : 0;

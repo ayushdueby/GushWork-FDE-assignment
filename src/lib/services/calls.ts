@@ -97,7 +97,7 @@ export async function attachRecording(id: string, file: File | Blob, opts: { act
   let recordingPath: string | null = null;
   try {
     await fs.mkdir(RECORDINGS_DIR, { recursive: true });
-    const p = path.join(RECORDINGS_DIR, `${id}.${ext}`);
+    const p = path.join(/* turbopackIgnore: true */ RECORDINGS_DIR, `${id}.${ext}`);
     await fs.writeFile(p, Buffer.from(await file.arrayBuffer()));
     recordingPath = p;
   } catch {

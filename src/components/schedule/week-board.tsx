@@ -92,55 +92,20 @@ export function WeekBoard({ days, techs, jobs, unscheduled, canWrite }: { days: 
     return `${t.getFullYear()}-${String(t.getMonth() + 1).padStart(2, "0")}-${String(t.getDate()).padStart(2, "0")}`;
   })();
 
-  const Card = ({ j, compact }: { j: BoardJob; compact?: boolean }) => (
-    <div
-      draggable={canWrite}
-      onDragStart={(e) => {
-        setDragging(j.id);
-        e.dataTransfer.effectAllowed = "move";
-        e.dataTransfer.setData("text/plain", j.id);
-      }}
-      onDragEnd={() => setDragging(null)}
-      className={cn("rounded-lg border bg-card p-2 text-xs shadow-sm", j.urgent ? "border-red-300 urgent-ring" : "border-border", dragging === j.id && "opacity-50", conflicts.has(j.id) && "ring-2 ring-amber-400")}
-      data-testid="schedule-card"
-      data-job-id={j.id}
-      title={conflicts.has(j.id) ? "Overlaps another job for this tech" : undefined}
-    >
-      <div className="flex items-start gap-1">
-        {canWrite && <GripVertical className="mt-0.5 size-3.5 shrink-0 cursor-grab text-muted-foreground" aria-hidden />}
-        <div className="min-w-0 flex-1">
-          <Link href={`/jobs/${j.id}`} className="block truncate font-semibold hover:underline">
-            {j.scheduledFor && !compact ? `${formatTime(j.scheduledFor)} · ` : ""}
-            {j.business}
-          </Link>
-          <p className="truncate text-muted-foreground">
-            {j.equipment} — {j.issue}
-          </p>
-          {conflicts.has(j.id) && <p className="font-semibold text-amber-700">Double-booked</p>}
-        </div>
-      </div>
-      {canWrite && compact && (
-        <div className="mt-1">
-          <ScheduleDialog jobId={j.id} scheduledFor={j.scheduledFor} techId={j.techId} techs={techs} label="Schedule…" />
-        </div>
-      )}
-    </div>
-  );
-
   return (
-    <div className="grid gap-4 lg:grid-cols-[16rem_1fr]">
+    <div className="grid min-w-0 gap-4 lg:grid-cols-[16rem_1fr]">
       <aside className="space-y-2">
         <h2 className="text-sm font-semibold">Ready to book ({unscheduled.length})</h2>
         <p className="text-xs text-muted-foreground">Approved jobs. Drag one onto a tech&apos;s day, or use Schedule…</p>
         <div className="space-y-2" data-testid="unscheduled">
           {unscheduled.length === 0 && <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">Nothing waiting to be booked.</p>}
           {unscheduled.map((j) => (
-            <Card key={j.id} j={j} compact />
+            <BoardCard key={j.id} j={j} compact techs={techs} canWrite={canWrite} dragging={dragging} conflict={conflicts.has(j.id)} onDragStart={setDragging} />
           ))}
         </div>
       </aside>
 
-      <div className={cn("-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0", pending && "opacity-70")}>
+      <div className={cn("relative min-w-0 max-w-full overflow-x-auto pb-2", pending && "opacity-70")}>
         <table className="w-full min-w-[56rem] border-separate border-spacing-0 text-xs">
           <thead>
             <tr>
@@ -178,13 +143,13 @@ export function WeekBoard({ days, techs, jobs, unscheduled, canWrite }: { days: 
                               e.preventDefault();
                               drop(t.id, d, h);
                             }}
-                            className={cn("flex-1 border-t border-dashed border-border/60 p-1 first:border-t-0", over === key && "bg-primary/10", dragging && "min-h-6")}
+                            className={cn("min-h-7 flex-1 border-t border-dashed border-border/60 p-1 first:border-t-0", over === key && "bg-primary/10")}
                             data-testid={`slot-${t.id}-${d}-${h}`}
                             aria-label={`${t.name} ${d} ${slotLabel(h)}`}
                           >
-                            {here.length === 0 && dragging && <span className="text-[10px] text-muted-foreground">{slotLabel(h)}</span>}
+                            {here.length === 0 && <span className={cn("text-[11px]", dragging ? "text-foreground" : "text-muted-foreground")}>{slotLabel(h)}</span>}
                             {here.map((j) => (
-                              <Card key={j.id} j={j} />
+                              <BoardCard key={j.id} j={j} techs={techs} canWrite={canWrite} dragging={dragging} conflict={conflicts.has(j.id)} onDragStart={setDragging} />
                             ))}
                           </div>
                         );
@@ -212,4 +177,45 @@ function bucket(hour: number): number {
   let best = SLOTS[0];
   for (const s of SLOTS) if (hour >= s) best = s;
   return best;
+}
+
+/**
+ * Module-level on purpose: a component defined inside WeekBoard's render would get a new
+ * identity on every state change, remounting the card mid-drag and killing the native drag.
+ */
+function BoardCard({ j, compact, techs, canWrite, dragging, conflict, onDragStart }: { j: BoardJob; compact?: boolean; techs: BoardTech[]; canWrite: boolean; dragging: string | null; conflict: boolean; onDragStart: (id: string | null) => void }) {
+  return (
+    <div
+      draggable={canWrite}
+      onDragStart={(e) => {
+        onDragStart(j.id);
+        e.dataTransfer.effectAllowed = "move";
+        e.dataTransfer.setData("text/plain", j.id);
+      }}
+      onDragEnd={() => onDragStart(null)}
+      className={cn("rounded-lg border bg-card p-2 text-xs shadow-sm", j.urgent ? "border-red-300 urgent-ring" : "border-border", dragging === j.id && "opacity-50", conflict && "ring-2 ring-amber-400")}
+      data-testid="schedule-card"
+      data-job-id={j.id}
+      title={conflict ? "Overlaps another job for this tech" : undefined}
+    >
+      <div className="flex items-start gap-1">
+        {canWrite && <GripVertical className="mt-0.5 size-3.5 shrink-0 cursor-grab text-muted-foreground" aria-hidden />}
+        <div className="min-w-0 flex-1">
+          <Link href={`/jobs/${j.id}`} className="block truncate font-semibold hover:underline">
+            {j.scheduledFor && !compact ? `${formatTime(j.scheduledFor)} · ` : ""}
+            {j.business}
+          </Link>
+          <p className="truncate text-muted-foreground">
+            {j.equipment} — {j.issue}
+          </p>
+          {conflict && <p className="font-semibold text-amber-700">Double-booked</p>}
+        </div>
+      </div>
+      {canWrite && compact && (
+        <div className="mt-1">
+          <ScheduleDialog jobId={j.id} scheduledFor={j.scheduledFor} techId={j.techId} techs={techs} label="Schedule…" />
+        </div>
+      )}
+    </div>
+  );
 }

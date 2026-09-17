@@ -308,7 +308,7 @@ export function DialerPanel({ inline = false, reviewCallId }: { inline?: boolean
             </p>
           )}
           <div className="mt-4 flex justify-center gap-3">
-            <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700" onClick={answerInbound} disabled={busy} data-testid="answer-call">
+            <Button size="lg" className="bg-emerald-700 hover:bg-emerald-800" onClick={answerInbound} disabled={busy} data-testid="answer-call">
               <Phone /> Answer
             </Button>
             <Button size="lg" variant="destructive" onClick={() => declineInbound()} data-testid="decline-call">
@@ -409,7 +409,7 @@ export function DialerPanel({ inline = false, reviewCallId }: { inline?: boolean
 
           <div className="mt-4 flex justify-center gap-3">
             {phase === "idle" ? (
-              <Button size="lg" className="w-44 bg-emerald-600 hover:bg-emerald-700" onClick={placeCall} disabled={busy || phoneDigits(number).length < 7} data-testid="place-call">
+              <Button size="lg" className="w-44 bg-emerald-700 hover:bg-emerald-800" onClick={placeCall} disabled={busy || phoneDigits(number).length < 7} data-testid="place-call">
                 <Phone /> Call
               </Button>
             ) : (

@@ -82,7 +82,7 @@ export function TechJobCard({ job, canAct }: { job: TechJob; canAct: boolean }) 
           <Button variant="outline" onClick={onMyWay} disabled={pending} data-testid="on-my-way">
             <Navigation /> On my way
           </Button>
-          <Button onClick={() => setDone(true)} className="bg-emerald-600 hover:bg-emerald-700" data-testid="mark-done">
+          <Button onClick={() => setDone(true)} className="bg-emerald-700 hover:bg-emerald-800" data-testid="mark-done">
             <Check /> Mark done
           </Button>
         </div>
@@ -123,7 +123,7 @@ export function TechJobCard({ job, canAct }: { job: TechJob; canAct: boolean }) 
               <Button type="button" variant="outline" onClick={() => setDone(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={pending} className="bg-emerald-600 hover:bg-emerald-700" data-testid="confirm-done">
+              <Button type="submit" disabled={pending} className="bg-emerald-700 hover:bg-emerald-800" data-testid="confirm-done">
                 {pending ? "Saving…" : "Done"}
               </Button>
             </div>
