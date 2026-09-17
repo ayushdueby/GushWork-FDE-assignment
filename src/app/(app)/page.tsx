@@ -3,6 +3,7 @@ import Link from "next/link";
 import { CallList, type TodayRow } from "@/components/today/call-list";
 import { DigestButton } from "@/components/today/digest-button";
 import { ResetDemoButton } from "@/components/admin/reset-demo-button";
+import { DeniedNotice } from "@/components/shell/denied-notice";
 import { Button } from "@/components/ui/button";
 import { requirePage } from "@/lib/auth/current";
 import { can } from "@/lib/auth/permissions";
@@ -51,7 +52,7 @@ export default async function TodayPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="mx-auto max-w-5xl space-y-6">
-      {sp.denied && <p className="rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-900">That page isn&apos;t available for your role.</p>}
+      <DeniedNotice show={sp.denied} />
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-sm text-muted-foreground">{formatLongDate(now)}</p>

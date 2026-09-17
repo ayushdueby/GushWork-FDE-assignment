@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { TechJobCard, type TechJob } from "@/components/tech/tech-job-card";
+import { DeniedNotice } from "@/components/shell/denied-notice";
 import { requirePage } from "@/lib/auth/current";
 import { db } from "@/lib/db";
 import { startOfDay } from "@/lib/rules/dates";
@@ -8,7 +9,7 @@ import { cn } from "@/lib/utils";
 export const metadata = { title: "Tech view" };
 
 /** Mobile-first: a tech's own jobs today and upcoming. Owners can preview any tech. */
-export default async function TechPage({ searchParams }: { searchParams: Promise<{ tech?: string }> }) {
+export default async function TechPage({ searchParams }: { searchParams: Promise<{ tech?: string; denied?: string }> }) {
   const user = await requirePage("view:tech");
   const sp = await searchParams;
   const techs = await db.tech.findMany({ where: { active: true }, orderBy: { name: "asc" } });
@@ -30,6 +31,7 @@ export default async function TechPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
+      <DeniedNotice show={sp.denied} />
       <header className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{tech ? `${tech.name.split(" ")[0]}'s jobs` : "Tech view"}</h1>
