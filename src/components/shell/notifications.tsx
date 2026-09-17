@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { timeAgo } from "@/lib/rules/dates";
 
 interface Item {
@@ -53,7 +53,7 @@ export function NotificationsBell() {
         {unread > 0 && <span className="absolute right-1.5 top-1.5 grid min-w-5 place-items-center rounded-full bg-destructive px-1 text-[11px] font-bold text-white">{unread}</span>}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-80">
-        <DropdownMenuLabel>Notifications</DropdownMenuLabel>
+        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">Notifications</div>
         <DropdownMenuSeparator />
         {items.length === 0 && <div className="px-3 py-4 text-sm text-muted-foreground">Nothing new.</div>}
         {items.slice(0, 12).map((n) => (

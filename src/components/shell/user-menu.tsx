@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ChevronDown, LogOut, Repeat } from "lucide-react";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function UserMenu({ name, role }: { name: string; role: string }) {
   return (
@@ -22,9 +22,9 @@ export function UserMenu({ name, role }: { name: string; role: string }) {
         <ChevronDown className="size-4 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>
+        <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
           {name} <span className="font-normal capitalize text-muted-foreground">· {role}</span>
-        </DropdownMenuLabel>
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem render={<Link href="/login?switch=1" />}>
           <Repeat className="size-4" /> Switch user / role
