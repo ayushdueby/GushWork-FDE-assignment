@@ -1,0 +1,243 @@
+// Cooler Calls — field-service CRM for a commercial refrigeration repair company.
+//
+// The datasource provider is "sqlite" for local dev. `scripts/prisma-provider.mjs`
+// flips it to "postgresql" at build time when DATABASE_URL points at Postgres (Neon),
+// so the same schema runs in both places. Enums and Json are avoided on purpose:
+// SQLite doesn't support them, so stages/channels are validated with zod in code.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id             String     @id @default(cuid())
+  businessName   String
+  type           String     @default("restaurant") // restaurant | grocery | warehouse | other
+  primaryContact String     @default("")
+  phone          String?
+  phoneDigits    String?    // digits only, for matching ("5125550199")
+  email          String?    // lower-cased, for matching
+  notes          String     @default("")
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+  sites          Site[]
+  jobs           Job[]
+  messages       Message[]
+  calls          Call[]
+  activities     Activity[]
+  quotes         Quote[]
+
+  @@index([phoneDigits])
+  @@index([email])
+  @@index([businessName])
+}
+
+model Site {
+  id         String      @id @default(cuid())
+  customerId String
+  customer   Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  name       String
+  address    String      @default("")
+  equipment  Equipment[]
+  jobs       Job[]
+  createdAt  DateTime    @default(now())
+
+  @@index([customerId])
+}
+
+model Equipment {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  type      String   // walk-in cooler | walk-in freezer | ice machine | reach-in | other
+  makeModel String   @default("")
+  notes     String   @default("")
+  jobs      Job[]
+  createdAt DateTime @default(now())
+
+  @@index([siteId])
+}
+
+model Job {
+  id            String     @id @default(cuid())
+  customerId    String
+  customer      Customer   @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  siteId        String?
+  site          Site?      @relation(fields: [siteId], references: [id], onDelete: SetNull)
+  equipmentId   String?
+  equipment     Equipment? @relation(fields: [equipmentId], references: [id], onDelete: SetNull)
+  equipmentType String     @default("other") // denormalised for jobs without an equipment record
+  source        String     @default("call") // call | sms | email | web_form | referral | repeat
+  issue         String     @default("")
+  urgent        Boolean    @default(false)
+  stage         String     @default("needs_quote") // needs_quote | waiting_on_yes | approved | scheduled | done | lost
+  lostReason    String?
+  techId        String?
+  tech          Tech?      @relation(fields: [techId], references: [id], onDelete: SetNull)
+  scheduledFor  DateTime?
+  scheduledEnd  DateTime?
+  lastContactAt DateTime?
+  completedAt   DateTime?
+  completionNotes String   @default("")
+  completionPhoto String?  // data URL or storage path
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  messages      Message[]
+  calls         Call[]
+  quotes        Quote[]
+  activities    Activity[]
+
+  @@index([customerId])
+  @@index([stage])
+  @@index([techId, scheduledFor])
+  @@index([createdAt])
+}
+
+model Message {
+  id            String    @id @default(cuid())
+  channel       String    // email | sms | web_form
+  direction     String    // inbound | outbound
+  fromAddr      String    @default("")
+  toAddr        String    @default("")
+  subject       String?
+  body          String
+  raw           String    @default("")
+  receivedAt    DateTime  @default(now())
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  jobId         String?
+  job           Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  status        String    @default("pending") // pending | needs_review | accepted | not_a_lead | sent | failed
+  extractedJson String?
+  externalId    String?   @unique // provider message id / dedupe hash
+  threadKey     String?   // groups a conversation (phone digits or email)
+  createdAt     DateTime  @default(now())
+
+  @@index([receivedAt])
+  @@index([threadKey])
+  @@index([status])
+}
+
+model Call {
+  id            String    @id @default(cuid())
+  direction     String    // inbound | outbound
+  number        String
+  numberDigits  String    @default("")
+  startedAt     DateTime  @default(now())
+  endedAt       DateTime?
+  durationSec   Int       @default(0)
+  status        String    @default("completed") // completed | missed | in_progress | failed
+  recordingPath String?
+  recordingMime String?
+  transcript    String?
+  extractedJson String?
+  applied       Boolean   @default(false)
+  appliedAt     DateTime?
+  summary       String?
+  customerId    String?
+  customer      Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  jobId         String?
+  job           Job?      @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  createdAt     DateTime  @default(now())
+
+  @@index([startedAt])
+  @@index([numberDigits])
+}
+
+model Quote {
+  id              String      @id @default(cuid())
+  jobId           String
+  job             Job         @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  customerId      String
+  customer        Customer    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  items           QuoteItem[]
+  taxRate         Float       @default(0)
+  subtotal        Float       @default(0)
+  tax             Float       @default(0)
+  total           Float       @default(0)
+  notes           String      @default("")
+  status          String      @default("draft") // draft | sent | accepted | declined
+  publicToken     String      @unique @default(cuid())
+  sentAt          DateTime?
+  reminderSentAt  DateTime?
+  respondedAt     DateTime?
+  customerComment String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([jobId])
+}
+
+model QuoteItem {
+  id          String @id @default(cuid())
+  quoteId     String
+  quote       Quote  @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  description String
+  qty         Float  @default(1)
+  unitPrice   Float  @default(0)
+  sortOrder   Int    @default(0)
+}
+
+model PriceListItem {
+  id          String @id @default(cuid())
+  description String
+  kind        String @default("part") // part | labor
+  unitPrice   Float
+  sortOrder   Int    @default(0)
+}
+
+model Tech {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String   @default("")
+  color     String   @default("#2563eb")
+  active    Boolean  @default(true)
+  jobs      Job[]
+  users     User[]
+  createdAt DateTime @default(now())
+}
+
+model Activity {
+  id         String   @id @default(cuid())
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  jobId      String?
+  job        Job?     @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  type       String   // stage | contact | note | message_in | message_out | call | quote | schedule | system | missed_call
+  text       String
+  actor      String   @default("system")
+  at         DateTime @default(now())
+
+  @@index([customerId, at])
+  @@index([jobId, at])
+  @@index([at])
+}
+
+model User {
+  id     String  @id @default(cuid())
+  name   String
+  role   String  // owner | bookkeeper | tech
+  techId String?
+  tech   Tech?   @relation(fields: [techId], references: [id], onDelete: SetNull)
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  forRole   String    @default("owner")
+  text      String
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([forRole, readAt])
+}
+
+model Setting {
+  key   String @id
+  value String
+}
