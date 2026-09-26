@@ -370,6 +370,12 @@ export async function seed(db: Db, now = new Date()) {
   await quote(sushi, sushiJob, { items: [{ description: "Thermostat / temperature controller", qty: 1, unitPrice: 145 }, { description: "Refrigerant R-404A (per lb)", qty: 2, unitPrice: 38 }, { description: "Labor (per hour)", qty: 2, unitPrice: 110 }], status: "sent", sentAt: at(6, 12, 0, now) });
   await stage(sushi, sushiJob, "Waiting on yes", at(6, 12, 0, now));
 
+  // 18. Garden Gate Bistro — quote out 4 days, gone quiet.
+  const garden = await customer({ businessName: "Garden Gate Bistro", type: "restaurant", primaryContact: "Ivy Marchetti", phone: "(512) 555-0136", email: "ivy@gardengatebistro.com", sites: [{ name: "Main location", address: "1601 W 38th St, Austin, TX 78731", equipment: [{ type: "reach-in", makeModel: "Traulsen UHT" }] }], createdAt: at(110, 9, 0, now) });
+  const gardenJob = await job(garden, { equipmentType: "reach-in", source: "referral", issue: "Reach-in cooler on the line holding 46°F through service.", stage: "waiting_on_yes", createdAt: at(7, 9, 0, now), lastContactAt: at(4, 14, 0, now) });
+  await quote(garden, gardenJob, { items: [{ description: "Thermostat / temperature controller", qty: 1, unitPrice: 145 }, { description: "Labor (per hour)", qty: 2, unitPrice: 110 }], status: "sent", sentAt: at(4, 14, 0, now) });
+  await stage(garden, gardenJob, "Waiting on yes", at(4, 14, 0, now));
+
   // Historical done jobs for the revenue chart (last 8 weeks).
   const history: [Cust, number, string, number][] = [
     [diner, 26, "walk-in cooler", 540],
@@ -389,5 +395,5 @@ export async function seed(db: Db, now = new Date()) {
   await message(null, null, { channel: "email", direction: "inbound", from: "promo@seo-leads-pro.example", to: "service@denisesrefrigeration.com", subject: "Rank #1 on Google for refrigeration repair", body: "Hi! We can get your business to the top of Google in 30 days. Reply for a free audit.", at: at(1, 6, 0, now), status: "not_a_lead", extracted: { intent: "other", isLead: false, summary: "SEO spam" } });
   await message(null, null, { channel: "sms", direction: "inbound", from: "(512) 555-0777", to: "(512) 555-0100", body: "hey is this the fridge repair people? our beer cooler at the taproom is warm. 512-555-0777", at: at(0, 6, 55, now), status: "needs_review", extracted: { phone: "512-555-0777", equipment: "reach-in", issue: "Beer cooler at the taproom is warm", urgency: "high", intent: "new_request", name: null, business: null } });
 
-  return { customers: 17, techs: techs.length };
+  return { customers: 18, techs: techs.length };
 }

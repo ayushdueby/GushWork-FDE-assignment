@@ -144,11 +144,13 @@ See [`.env.example`](.env.example). Required: `DATABASE_URL`, `APP_URL`, `SESSIO
 ## Tests
 
 ```bash
-npm test          # Vitest — 137 unit tests (rules, parser, matching, pipeline, AI fallback, call diff, quotes, permissions)
-npm run test:e2e  # Playwright — desktop + Pixel 5; builds the app, seeds its own SQLite, mocks Groq
+npm test          # Vitest — 228 unit tests across 17 files
+npm run test:e2e  # Playwright — 28 tests (14 specs × desktop + Pixel 5); builds the app, seeds its own SQLite, mocks Groq
 ```
 
-E2E covers the full story above, web-form leads, missed-call leads, every role's page/API reach (direct URLs included), XSS rendered as text, double-click stage safety, and an axe (WCAG 2A/AA, serious+critical) pass over Today, Dialer, Inbox, Jobs, Schedule and the public quote page plus a no-horizontal-scroll check. Both suites were run three times in a row with no flakes; `npm run build` and `npm run lint` are clean.
+Unit coverage: the ported follow-up rules and message parser; customer matching (phone / email / fuzzy name); the ingestion pipeline including duplicates, intent application and concurrent delivery; Groq JSON validation and every failure mode (bad JSON, schema mismatch, timeout, 429, decommissioned model, no key); call extraction, the proposed-change diff and idempotent apply; the job stage machine (contact semantics, required reason/date, no-op re-moves, completion); scheduling and double-booking; quote totals and accept/decline including double and concurrent answers; reports maths and CSV formula-injection escaping; digest and outbound messaging; adapter selection and Twilio webhook signature verification; PDF rendering with characters WinAnsi can't encode; permissions and session signing.
+
+E2E covers the full story above, a declined quote (job → lost with the customer's reason), rejecting a lead ("Not a lead" removes the job the pipeline created), one-click quote reminders, the bookkeeper's CSV export, web-form leads, missed-call leads, every role's page/API reach (direct URLs included), XSS rendered as text, double-click stage safety, and an axe (WCAG 2A/AA, serious+critical) pass over Today, Dialer, Inbox, Jobs, Schedule and the public quote page plus a no-horizontal-scroll check. Both suites were run three times in a row with no flakes; `npm run build` and `npm run lint` are clean.
 
 ## Two-minute demo script
 

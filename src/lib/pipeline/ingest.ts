@@ -46,33 +46,50 @@ export function messageFingerprint(m: Pick<InboundMessage, "channel" | "from" | 
 
 const RECENT_DUP_WINDOW_DAYS = 7;
 
+function duplicateOf(existing: { id: string; status: string; customerId: string | null; jobId: string | null; extractedJson: string | null }): IngestResult {
+  return { messageId: existing.id, duplicate: true, status: existing.status, customerId: existing.customerId, jobId: existing.jobId, created: { customer: false, job: false }, extraction: existing.extractedJson ? (JSON.parse(existing.extractedJson) as MessageExtraction) : null, engine: null, applied: null };
+}
+
+/** Prisma's unique-constraint violation. */
+function isUniqueViolation(err: unknown): boolean {
+  return typeof err === "object" && err !== null && (err as { code?: string }).code === "P2002";
+}
+
 export async function ingestMessage(input: InboundMessage): Promise<IngestResult> {
   const externalId = input.externalId ? `ext:${input.externalId}` : messageFingerprint(input);
 
   // 1. Dedupe on provider id / content fingerprint.
   const existing = await db.message.findUnique({ where: { externalId } });
-  if (existing) {
-    return { messageId: existing.id, duplicate: true, status: existing.status, customerId: existing.customerId, jobId: existing.jobId, created: { customer: false, job: false }, extraction: existing.extractedJson ? (JSON.parse(existing.extractedJson) as MessageExtraction) : null, engine: null, applied: null };
-  }
+  if (existing) return duplicateOf(existing);
 
   const threadKey = input.channel === "sms" ? phoneDigits(input.from) || input.from : input.from.toLowerCase().match(/[\w.+-]+@[\w-]+\.[\w.-]+/)?.[0] ?? input.from.toLowerCase();
 
-  // 2. Store first so nothing is lost even if extraction blows up.
-  const message = await db.message.create({
-    data: {
-      channel: input.channel,
-      direction: "inbound",
-      fromAddr: input.from.slice(0, 200),
-      toAddr: (input.to ?? "").slice(0, 200),
-      subject: input.subject?.slice(0, 300) ?? null,
-      body: input.body.slice(0, 20_000),
-      raw: (input.raw ?? input.body).slice(0, 50_000),
-      receivedAt: input.receivedAt ?? new Date(),
-      status: "pending",
-      externalId,
-      threadKey,
-    },
-  });
+  // 2. Store first so nothing is lost even if extraction blows up. Two deliveries of the same
+  // message can race past the check above (Twilio retries, a double-clicked button), so the
+  // unique index is the real guard: losing that race means it's a duplicate, not an error.
+  let message;
+  try {
+    message = await db.message.create({
+      data: {
+        channel: input.channel,
+        direction: "inbound",
+        fromAddr: input.from.slice(0, 200),
+        toAddr: (input.to ?? "").slice(0, 200),
+        subject: input.subject?.slice(0, 300) ?? null,
+        body: input.body.slice(0, 20_000),
+        raw: (input.raw ?? input.body).slice(0, 50_000),
+        receivedAt: input.receivedAt ?? new Date(),
+        status: "pending",
+        externalId,
+        threadKey,
+      },
+    });
+  } catch (err) {
+    if (!isUniqueViolation(err)) throw err;
+    const winner = await db.message.findUnique({ where: { externalId } });
+    if (winner) return duplicateOf(winner);
+    throw err;
+  }
 
   // 3. Extract.
   const { data: ex, engine } = await extractMessage({ body: input.body, subject: input.subject, from: input.from, channel: input.channel });
