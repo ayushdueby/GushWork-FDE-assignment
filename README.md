@@ -91,6 +91,10 @@ flowchart LR
   classDef ch fill:#eef2ff,stroke:#6366f1;
 ```
 
+**Page flow:** [`docs/diagrams/cooler-calls-page-flow.excalidraw`](docs/diagrams/cooler-calls-page-flow.svg) traces a lead from the outside world through every screen, with the two-minute demo numbered 1–9 along the way. Open the `.excalidraw` file at [excalidraw.com](https://excalidraw.com) (Menu → Open) to edit it, or regenerate it with `python3 docs/diagrams/generate_flow.py`.
+
+![Page flow](docs/diagrams/cooler-calls-page-flow.svg)
+
 The follow-up rules (`src/lib/rules/callToday.ts`) and the message parser (`src/lib/parse/parseMessage.ts`) are ported from the earlier `cooler-calls` prototype with their unit tests intact, plus one new rule for missed calls.
 
 **Follow-up rules, in priority order** (each open job appears once, under its first matching reason; urgent first, then longest waiting; done/lost never appear; days are calendar days):
